@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pindrop — GTM Single Source of Truth · Business Case</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFBF9;--bg-subtle:#F5F5F0;--bg-card:#FFFFFF;--bg-dark:#0E1018;
+  --text:#1C1C1E;--text-2:#52525B;--text-3:#A0A0AB;
+  --blue:#2563EB;--blue-soft:#DBEAFE;--blue-dim:rgba(37,99,235,0.07);
+  --orange:#EA580C;--orange-soft:#FFEDD5;--orange-dim:rgba(234,88,12,0.07);
+  --green:#16A34A;--green-soft:#DCFCE7;--green-dim:rgba(22,163,74,0.07);
+  --red:#DC2626;--red-soft:#FEE2E2;--red-dim:rgba(220,38,38,0.06);
+  --purple:#7C3AED;--purple-soft:#EDE9FE;--purple-dim:rgba(124,58,237,0.07);
+  --amber:#D97706;--amber-soft:#FEF3C7;--amber-dim:rgba(217,119,6,0.07);
+  --teal:#0D9488;--teal-soft:#CCFBF1;--teal-dim:rgba(13,148,136,0.08);
+  --hs:#FF7A59;--hs-soft:#FFE8E1;--hs-dim:rgba(255,122,89,0.08);
+  --border:#E4E4E7;--r:14px;--r-sm:9px;
+  --shadow:0 1px 3px rgba(0,0,0,0.04);--shadow-md:0 4px 24px rgba(0,0,0,0.06);--shadow-lg:0 12px 48px rgba(0,0,0,0.09);
+  --ff:'Fraunces',Georgia,serif;--fb:'DM Sans',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--fb);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:auto;min-width:1200px;padding:0 0 80px;}
+.wrap{max-width:1340px;margin:0 auto;padding:0 40px;}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(135deg,#0E1018 0%,#1b1430 55%,#2a1b4d 100%);color:#fff;padding:46px 0 40px;border-bottom:3px solid var(--hs);}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#b9a9e8;margin-bottom:14px;}
+.hero h1{font-family:var(--ff);font-weight:600;font-size:39px;line-height:1.1;letter-spacing:-0.02em;max-width:900px;}
+.hero p.sub{font-size:15px;color:#cdc7da;margin-top:14px;max-width:820px;line-height:1.55;}
+.hero .hl{color:var(--hs);}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:34px;}
+.kpi{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:18px 20px;}
+.kpi .v{font-family:var(--ff);font-size:30px;font-weight:600;letter-spacing:-0.02em;line-height:1;}
+.kpi .v.hs{color:var(--hs);}
+.kpi .v.grn{color:#5ee08a;}
+.kpi .v.red{color:#ff8f7a;}
+.kpi .l{font-size:11.5px;color:#bdb6cc;margin-top:8px;line-height:1.4;}
+
+/* ── Top nav ── */
+.topnav{position:sticky;top:0;z-index:50;background:rgba(251,251,249,0.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+.topnav-inner{max-width:1340px;margin:0 auto;padding:0 40px;display:flex;gap:2px;}
+.tnav{font-family:var(--fb);font-size:13.5px;font-weight:600;padding:16px 18px;color:var(--text-3);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .2s;display:flex;align-items:center;gap:9px;background:none;border-top:none;border-left:none;border-right:none;}
+.tnav:hover{color:var(--text);}
+.tnav.active{color:var(--text);border-bottom-color:var(--hs);}
+.tnav .tn-num{font-family:var(--fm);font-size:10px;color:var(--text-3);border:1px solid var(--border);border-radius:5px;padding:1px 6px;}
+.tnav.active .tn-num{color:#fff;background:var(--hs);border-color:var(--hs);}
+.toppanel{display:none;}
+.toppanel.active{display:block;}
+
+/* ── Section ── */
+.section{margin-top:46px;}
+.section:first-child{margin-top:34px;}
+.section-eyebrow{font-family:var(--fm);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--hs);font-weight:600;margin-bottom:9px;}
+.section h2{font-family:var(--ff);font-weight:600;font-size:27px;letter-spacing:-0.018em;line-height:1.12;}
+.section .lead{font-size:14px;color:var(--text-2);margin-top:9px;max-width:820px;line-height:1.6;}
+
+/* ── Map sub-tabs ── */
+.tabs{display:flex;gap:8px;margin-top:26px;flex-wrap:wrap;}
+.tab{font-family:var(--fb);font-size:13px;font-weight:600;padding:11px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.tab:hover{border-color:var(--text-3);color:var(--text);}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text);}
+.tab.rec{border-color:var(--hs);}
+.tab.rec.active{background:var(--hs);border-color:var(--hs);color:#fff;}
+.tab .star{color:var(--hs);font-size:12px;}
+.tab.active .star{color:#fff;}
+.tab .dot{width:8px;height:8px;border-radius:50%;}
+
+/* ── Legend ── */
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin-top:22px;padding:14px 18px;background:var(--bg-subtle);border-radius:var(--r);border:1px solid var(--border);}
+.lg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);font-weight:500;}
+.lg .sw{width:13px;height:13px;border-radius:4px;flex-shrink:0;}
+
+/* ── Map stage ── */
+.panel{display:none;}
+.panel.active{display:block;}
+.map-frame{margin-top:22px;border:1px solid var(--border);border-radius:var(--r);background:radial-gradient(circle at 50% 42%, #ffffff 0%, var(--bg-subtle) 100%);box-shadow:var(--shadow);overflow:hidden;}
+.map-banner{padding:15px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:20px;background:var(--bg-card);}
+.map-banner .t{font-family:var(--ff);font-size:18px;font-weight:600;}
+.map-banner .d{font-size:12.5px;color:var(--text-2);margin-top:3px;max-width:680px;line-height:1.5;}
+.map-banner .pill{font-family:var(--fm);font-size:11px;font-weight:600;padding:8px 14px;border-radius:30px;white-space:nowrap;}
+.stage{position:relative;min-height:780px;padding:30px 24px;}
+.stage-grid{display:grid;grid-template-columns:1fr 280px 1fr;gap:30px;align-items:center;position:relative;z-index:2;}
+.col{display:flex;flex-direction:column;gap:16px;}
+svg.spokes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible;}
+
+/* cluster card */
+.cluster{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px 12px;box-shadow:var(--shadow);position:relative;}
+.cluster.allnix{border-color:var(--red-soft);background:#fff7f7;}
+.cluster-h{font-size:11px;font-weight:700;letter-spacing:-0.01em;display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:9px;}
+.cluster-h .nm{display:flex;align-items:center;gap:7px;}
+.cluster-h .ic{font-size:13px;}
+.cluster-h .ct{font-family:var(--fm);font-size:9px;color:var(--text-3);font-weight:500;}
+.chips{display:flex;flex-direction:column;gap:4px;}
+.chip{display:flex;align-items:center;gap:7px;font-size:10.5px;padding:3px 2px;border-radius:5px;}
+.chip .cd{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.chip .cn{font-weight:600;color:var(--text);}
+.chip .cs{font-family:var(--fm);font-size:9px;color:var(--text-3);margin-left:auto;padding-left:8px;white-space:nowrap;}
+.chip.gone .cn{color:var(--text-3);text-decoration:line-through;text-decoration-color:rgba(220,38,38,.5);}
+.chip.gone .cs{color:var(--red);text-decoration:none;}
+.chip.addtool .cn{color:var(--blue);font-weight:700;}
+.chip.addtool .cs{color:var(--blue);font-weight:700;}
+.chip.native .cs{color:var(--hs);font-weight:600;}
+
+/* hub */
+.hub{border-radius:16px;padding:20px 18px;text-align:center;position:relative;}
+.hub.frag{background:#fff;border:2px dashed var(--red);box-shadow:0 0 0 5px var(--red-dim);}
+.hub.hsbox{background:linear-gradient(160deg,#fff 0%,var(--hs-soft) 130%);border:2px solid var(--hs);box-shadow:0 0 0 6px var(--hs-dim),var(--shadow-lg);}
+.hub .hub-logo{font-family:var(--ff);font-size:22px;font-weight:700;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center;gap:8px;}
+.hub.hsbox .hub-logo{color:#222;}
+.hub .hub-logo .mark{width:26px;height:26px;border-radius:7px;background:var(--hs);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
+.hub .hub-tag{font-size:11px;color:var(--text-2);margin-top:5px;line-height:1.4;}
+.hub.frag .hub-logo{color:var(--red);font-size:15px;font-family:var(--fb);font-weight:700;}
+.hub-mods{display:flex;flex-direction:column;gap:5px;margin-top:15px;}
+.mod{font-size:10.5px;font-weight:600;padding:6px 9px;border-radius:6px;display:flex;align-items:center;gap:7px;text-align:left;}
+.mod .mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.mod.on{background:var(--hs-dim);color:#9a3412;border:1px solid rgba(255,122,89,.3);}
+.mod.on .mdot{background:var(--hs);}
+.mod.off{background:var(--bg-subtle);color:var(--text-3);border:1px solid var(--border);}
+.mod.off .mdot{background:var(--text-3);}
+.frag-core{font-size:11px;font-weight:600;padding:8px 10px;border-radius:7px;margin-top:9px;text-align:left;display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--bg-subtle);}
+.frag-core .fd{width:8px;height:8px;border-radius:50%;}
+.hubwarn{font-size:10.5px;color:var(--red);text-align:center;font-weight:600;margin-top:4px;}
+
+/* cost band */
+.cost-band{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;border:1px solid var(--border);margin-top:24px;}
+.cb{background:var(--bg-card);padding:18px 20px;}
+.cb .l{font-family:var(--fm);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-3);font-weight:600;}
+.cb .v{font-family:var(--ff);font-size:24px;font-weight:600;margin-top:8px;letter-spacing:-0.02em;}
+.cb .v.red{color:var(--red);}
+.cb .v.grn{color:var(--green);}
+.cb .n{font-size:11px;color:var(--text-2);margin-top:5px;line-height:1.4;}
+
+/* pain callouts */
+.pains{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px;}
+.pain{background:#fff;border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--r-sm);padding:13px 14px;}
+.pain .pt{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
+.pain .pd{font-size:11px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+
+/* comparison table */
+.cmp{margin-top:26px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead th{background:var(--bg-subtle);text-align:left;padding:13px 15px;font-family:var(--fm);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-2);font-weight:600;border-bottom:1px solid var(--border);vertical-align:top;}
+thead th.rec{background:var(--hs-dim);color:#9a3412;}
+thead th.warn{background:var(--purple-dim);color:#5b21b6;}
+tbody td{padding:12px 15px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody td.row-h{font-weight:600;color:var(--text);}
+tbody td.rec{background:var(--hs-dim);color:#7c2d12;font-weight:600;}
+tbody td.warn{background:var(--purple-dim);}
+tbody tr.total td{background:var(--bg-subtle);font-weight:700;color:var(--text);font-size:13.5px;}
+tbody tr.total td.rec{background:#ffe1d8;}
+tbody tr.total td.warn{background:#ece4fb;}
+.tag-pos{color:var(--green);font-weight:700;}
+.tag-neg{color:var(--red);font-weight:700;}
+
+/* warehouse fit callout */
+.whfit{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:20px;}
+.whfit .c{background:var(--bg-card);padding:20px 22px;}
+.whfit .h{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.whfit ul{margin:11px 0 0;padding-left:18px;}
+.whfit li{font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:6px;}
+.whfit .c.fit .h{color:var(--purple);}
+.whfit .c.no .h{color:var(--hs);}
+
+/* benefits */
+.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px;}
+.bene{border-radius:var(--r);padding:18px 17px;background:linear-gradient(150deg,#a78bfa 0%,#c4b5fd 60%,#ede9fe 130%);color:#2e1065;min-height:148px;display:flex;flex-direction:column;box-shadow:var(--shadow-md);position:relative;overflow:hidden;}
+.bene .bt{font-family:var(--ff);font-size:16px;font-weight:600;letter-spacing:-0.01em;line-height:1.15;}
+.bene .bp{font-size:11px;color:#4c1d95;margin-top:9px;line-height:1.5;font-weight:500;}
+.bene .pain-tag{font-family:var(--fm);font-size:8.5px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;color:#6d28d9;background:rgba(255,255,255,0.55);padding:4px 8px;border-radius:20px;align-self:flex-start;margin-top:auto;}
+
+/* stakeholders */
+.stake{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:24px;}
+.scard{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow);border-top:3px solid var(--hs);}
+.scard .sh{display:flex;align-items:center;gap:12px;}
+.scard .sav{width:42px;height:42px;border-radius:11px;background:var(--hs-dim);color:var(--hs);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.scard .snm{font-size:15px;font-weight:700;}
+.scard .stt{font-size:11px;color:var(--text-2);font-family:var(--fm);margin-top:1px;}
+.scard .sgoal{font-size:12px;color:var(--text-2);margin:13px 0 6px;font-style:italic;line-height:1.5;}
+.scard ul{margin:8px 0 0;padding-left:0;list-style:none;}
+.scard li{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:9px;padding-left:21px;position:relative;}
+.scard li::before{content:'✓';position:absolute;left:0;top:0;color:var(--green);font-weight:700;}
+.scard li b{font-weight:700;}
+.scard.champ{border-top-color:var(--purple);}
+.scard.champ .sav{background:var(--purple-dim);color:var(--purple);}
+.throughline{margin-top:16px;background:linear-gradient(135deg,#0E1018,#221a3a);color:#fff;border-radius:var(--r);padding:22px 26px;}
+.throughline .tlh{font-family:var(--fm);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--hs);font-weight:600;}
+.throughline p{font-size:13px;color:#d7d2e2;line-height:1.65;margin-top:9px;}
+.throughline p b{color:#fff;}
+.note-honest{margin-top:14px;font-size:11.5px;color:var(--text-3);font-style:italic;line-height:1.55;padding:12px 16px;border:1px dashed var(--border);border-radius:var(--r-sm);background:var(--bg-subtle);}
+
+/* TCO */
+.tco{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;}
+.tcoc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);}
+.tcoc .ti{width:38px;height:38px;border-radius:10px;background:var(--purple-dim);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:13px;}
+.tcoc h4{font-size:14px;font-weight:700;}
+.tcoc p{font-size:12px;color:var(--text-2);margin-top:7px;line-height:1.55;}
+.tcoc .mag{font-family:var(--fm);font-size:11px;color:var(--purple);font-weight:600;margin-top:11px;}
+
+/* recommendation */
+.rec-box{margin-top:8px;background:linear-gradient(135deg,#0E1018,#221a3a);border-radius:var(--r);padding:30px 32px;color:#fff;display:grid;grid-template-columns:1.5fr 1fr;gap:30px;align-items:center;border:1px solid rgba(255,255,255,.08);}
+.rec-box .re{font-family:var(--fm);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--hs);font-weight:600;}
+.rec-box h3{font-family:var(--ff);font-size:24px;font-weight:600;margin-top:10px;line-height:1.2;}
+.rec-box p{font-size:13px;color:#cdc7da;margin-top:12px;line-height:1.6;}
+.rec-num{text-align:center;border-left:1px solid rgba(255,255,255,.12);padding-left:30px;}
+.rec-num .big{font-family:var(--ff);font-size:46px;font-weight:700;color:#5ee08a;line-height:1;}
+.rec-num .lbl{font-size:12px;color:#bdb6cc;margin-top:8px;}
+
+/* de-risk */
+.derisk{margin-top:22px;background:linear-gradient(135deg,#fff7ed,#fffbf5);border:1px solid var(--hs-soft);border-left:4px solid var(--hs);border-radius:var(--r);padding:18px 22px;}
+.derisk .dh{font-size:13px;font-weight:700;color:#9a3412;display:flex;align-items:center;gap:8px;}
+.derisk p{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:8px;}
+.derisk p b{color:var(--text);}
+
+/* ── Gantt roadmap ── */
+.gantt{margin-top:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg-card);box-shadow:var(--shadow);position:relative;}
+.gantt-qtr,.gantt-mon{display:grid;grid-template-columns:210px repeat(12,1fr);background:var(--bg-subtle);}
+.gantt-qtr{border-bottom:1px solid var(--border);}
+.gantt-mon{border-bottom:1px solid var(--border);}
+.gcorner{padding:10px 16px;font-family:var(--fm);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-weight:600;display:flex;align-items:flex-end;}
+.gq{grid-column:span 3;text-align:center;font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);font-weight:600;padding:9px 0;border-left:1px solid var(--border);}
+.gm{text-align:center;font-family:var(--fm);font-size:9px;color:var(--text-3);padding:6px 0;border-left:1px solid var(--border);}
+.gantt-row{display:grid;grid-template-columns:210px 1fr;border-bottom:1px solid var(--border);}
+.gantt-row:last-child{border-bottom:none;}
+.glabel{padding:13px 16px;}
+.glabel .pp{font-family:var(--fm);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--hs);font-weight:600;}
+.glabel h4{font-size:13px;font-weight:700;margin-top:3px;line-height:1.15;}
+.glabel .gh{font-size:10.5px;color:var(--text-3);margin-top:3px;line-height:1.35;}
+.gtrack{display:grid;grid-template-columns:repeat(12,1fr);position:relative;align-items:center;min-height:62px;
+  background-image:repeating-linear-gradient(to right, transparent 0, transparent calc(8.3333% - 1px), var(--border) calc(8.3333% - 1px), var(--border) 8.3333%);}
+.gbar{grid-row:1;height:36px;border-radius:9px;display:flex;flex-direction:column;justify-content:center;padding:0 13px;color:#fff;box-shadow:var(--shadow-md);margin:0 4px;position:relative;z-index:2;}
+.gbar .bl{font-size:11.5px;font-weight:700;line-height:1.1;}
+.gbar .bs{font-size:9px;opacity:.92;font-family:var(--fm);margin-top:2px;}
+.gate{position:absolute;top:0;bottom:0;border-left:2px dashed var(--hs);left:calc(210px + (100% - 210px) * 0.33333);z-index:6;pointer-events:none;}
+.gate .gtag{position:absolute;top:34px;left:7px;background:var(--hs);color:#fff;font-size:9px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;font-family:var(--fm);box-shadow:var(--shadow);}
+.gnote{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--text-2);}
+.gnote span{display:flex;align-items:center;gap:7px;}
+.gnote .gk{width:13px;height:13px;border-radius:4px;}
+
+/* ── Speed to value ── */
+.spd-tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;}
+.spd-tile{border-radius:var(--r);padding:24px 26px;position:relative;overflow:hidden;color:#fff;}
+.spd-tile.win{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:var(--shadow-md);}
+.spd-tile.slow{background:linear-gradient(135deg,#322c46,#4b4566);}
+.spd-tile .big{font-family:var(--ff);font-size:48px;font-weight:700;line-height:1;letter-spacing:-0.02em;}
+.spd-tile .lab{font-size:14px;font-weight:700;margin-top:10px;}
+.spd-tile .sub{font-size:12px;opacity:.93;margin-top:6px;line-height:1.45;}
+.spd-tile .tag{position:absolute;top:16px;right:18px;font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;}
+.spd-tl{margin-top:16px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg-card);box-shadow:var(--shadow);padding:20px 26px 22px;}
+.spd-canvas{position:relative;}
+.spd-axis{display:flex;justify-content:space-between;font-family:var(--fm);font-size:9.5px;color:var(--text-3);margin-bottom:18px;}
+.spd-lanename{font-size:12px;font-weight:700;margin:0 0 7px;display:flex;align-items:center;gap:8px;}
+.spd-lanename .pin{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.spd-lane{height:34px;border-radius:9px;background:var(--bg-subtle);position:relative;overflow:hidden;}
+.spd-fill{height:100%;border-radius:9px;display:flex;align-items:center;justify-content:flex-end;padding:0 13px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;}
+.spd-fill.win{background:linear-gradient(90deg,#22c55e,#15803d);}
+.spd-fill.slow{background:linear-gradient(90deg,#6b6486,#4b4566);}
+.spd-sub{font-size:10.5px;color:var(--text-3);margin:7px 0 16px;font-family:var(--fm);}
+.spd-year{position:absolute;top:24px;bottom:6px;left:50%;border-left:2px dashed var(--green);z-index:4;}
+.spd-year span{position:absolute;top:0;left:7px;background:var(--green);color:#fff;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.spd-take{margin-top:14px;font-size:13px;color:var(--text);background:var(--green-dim);border:1px solid var(--green-soft);border-left:3px solid var(--green);border-radius:var(--r-sm);padding:13px 16px;line-height:1.55;}
+.spd-take b{color:#15803d;}
+
+.foot{margin-top:48px;padding-top:22px;border-top:1px solid var(--border);font-size:11px;color:var(--text-3);line-height:1.6;}
+.foot b{color:var(--text-2);}
+</style>
+</head>
+<body>
+
+<!-- ════ HERO ════ -->
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Single Source of Truth · Optionality</div>
+    <h1>One source of truth for Pindrop’s GTM — <span class="hl">five ways</span> to get there, one right-sized for a 300-person company.</h1>
+    <p class="sub">Pindrop’s ~$1.38M GTM stack spans ~48 tools with no system of record. This maps the current sprawl and five paths to a single source of truth — from a <span class="hl">HubSpot-led consolidation</span> to a heavy data-warehouse build — scored on hard cost, total cost of ownership, speed to value, the pains each resolves, and how every C-level stakeholder wins. <em>Prepared for the CFO, CRO &amp; GTM leadership.</em></p>
+    <div class="kpis">
+      <div class="kpi"><div class="v">$1.38M</div><div class="l">Annual GTM tech spend across ~48 tools — and no system of record today</div></div>
+      <div class="kpi"><div class="v hs">5</div><div class="l">Paths to a single source of truth, modeled on cost, TCO &amp; speed to value</div></div>
+      <div class="kpi"><div class="v grn">~$650K</div><div class="l">Saved / yr under the recommended HubSpot all-in-one (~47%)</div></div>
+      <div class="kpi"><div class="v red">+$620K</div><div class="l">What the data-warehouse path would <b>add</b> / yr — heavy TCO for this scale</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TOP NAV ════ -->
+<div class="topnav">
+  <div class="topnav-inner" id="topnav">
+    <button class="tnav active" data-t="eco"><span class="tn-num">01</span>Ecosystem</button>
+    <button class="tnav" data-t="case"><span class="tn-num">02</span>The Case</button>
+    <button class="tnav" data-t="cost"><span class="tn-num">03</span>Cost Comparison</button>
+    <button class="tnav" data-t="rec"><span class="tn-num">04</span>Recommendation &amp; Roadmap</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ═══════════ TAB 1 · ECOSYSTEM ═══════════ -->
+  <div class="toppanel active" data-top="eco">
+    <div class="section" id="maps">
+      <div class="section-eyebrow">The Ecosystem</div>
+      <h2>Current state vs. five paths to a single source of truth</h2>
+      <p class="lead">Each map centers on the system of record. Today there isn’t one. Options 1–2 keep Salesforce; Option 3 replaces it with HubSpot but keeps Gainsight for CX; Option 4 puts the whole lifecycle on HubSpot; Option 5 builds a data warehouse <em>above</em> the entire stack. Only Option 4 makes one platform the single source of truth.</p>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-p="cur"><span class="dot" style="background:var(--red)"></span>Current State</button>
+        <button class="tab" data-p="s1"><span class="dot" style="background:var(--amber)"></span>Opt 1 · 3 CRMs</button>
+        <button class="tab" data-p="s2"><span class="dot" style="background:var(--blue)"></span>Opt 2 · HubSpot CDP/MAP + SFDC</button>
+        <button class="tab" data-p="s3"><span class="dot" style="background:var(--teal)"></span>Opt 3 · HubSpot Sales/MAP + Gainsight</button>
+        <button class="tab rec" data-p="s4"><span class="star">★</span>Opt 4 · All-in-One</button>
+        <button class="tab" data-p="s5"><span class="dot" style="background:var(--purple)"></span>Opt 5 · Data Warehouse</button>
+      </div>
+
+      <div class="legend">
+        <div class="lg"><span class="sw" style="background:var(--green)"></span>Keep — best-of-breed / integrates</div>
+        <div class="lg"><span class="sw" style="background:var(--red)"></span>Retire — absorbed or duplicate</div>
+        <div class="lg"><span class="sw" style="background:var(--amber)"></span>Vet — evaluate overlap</div>
+        <div class="lg"><span class="sw" style="background:var(--hs)"></span>HubSpot — consolidated platform</div>
+        <div class="lg"><span class="sw" style="background:var(--blue)"></span>New infrastructure (CPQ / warehouse / ETL)</div>
+      </div>
+
+      <div id="panels"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 2 · THE CASE ═══════════ -->
+  <div class="toppanel" data-top="case">
+    <div class="section" id="benefits">
+      <div class="section-eyebrow">Pains → Outcomes</div>
+      <h2>What consolidation actually fixes</h2>
+      <p class="lead">Mapped directly to the operating pains Pindrop’s leadership raised. Each benefit is what a single HubSpot platform delivers against that pain.</p>
+      <div class="benefits">
+        <div class="bene"><div class="bt">One source of truth</div><div class="bp">A single customer record spanning Marketing, Sales &amp; CS — no more conflicting copies across Salesforce, Gainsight &amp; spreadsheets.</div><div class="pain-tag">Source of truth</div></div>
+        <div class="bene"><div class="bt">End-to-end visibility</div><div class="bp">Lead → opportunity → customer health in one timeline. No stitching across Tableau, BI tools &amp; Coefficient to see the funnel.</div><div class="pain-tag">Visibility</div></div>
+        <div class="bene"><div class="bt">GTM alignment</div><div class="bp">Marketing, Sales &amp; CS share one lifecycle, one set of definitions, and one hand-off — not three disconnected systems.</div><div class="pain-tag">GTM alignment</div></div>
+        <div class="bene"><div class="bt">One hub for all</div><div class="bp">HubSpot becomes the GTM system of record the org has been missing — the place every team works from.</div><div class="pain-tag">One hub for all</div></div>
+        <div class="bene"><div class="bt">Kill the bloat</div><div class="bp">~48 → ~24 tools. ~24 redundant or absorbed contracts retired — incl. ZoomInfo, Common Room &amp; 6sense consolidated into Clay, plus duplicate sales-engagement &amp; contact-center tools.</div><div class="pain-tag">Bloat</div></div>
+        <div class="bene"><div class="bt">Governance restored</div><div class="bp">Centralized admin, permissions &amp; data ownership — and an end to shadow credit-card SaaS and ~290 ungoverned dashboards.</div><div class="pain-tag">Governance</div></div>
+        <div class="bene"><div class="bt">Insights at your fingertips</div><div class="bp">Native dashboards and Breeze AI run on unified GTM data — answers without a data-eng ticket or a manual export.</div><div class="pain-tag">Data &amp; insights</div></div>
+        <div class="bene" style="background:linear-gradient(150deg,#FF7A59 0%,#ffa183 70%,#ffd9cc 130%);color:#7c2d12"><div class="bt" style="color:#7c2d12">~$650K back / year</div><div class="bp" style="color:#9a3412">And ~47% lower hard spend on top of every operational win above — funding reinvestment elsewhere.</div><div class="pain-tag" style="color:#9a3412">Cost</div></div>
+      </div>
+    </div>
+
+    <div class="section" id="stakeholders">
+      <div class="section-eyebrow">How each stakeholder wins</div>
+      <h2>The all-in-one case, stakeholder by stakeholder</h2>
+      <p class="lead">The pains on record from discovery point to one underlying need: a trusted, governed hub with real-time data and enforced process. Here is what an all-in-one HubSpot delivers for each leader.</p>
+      <div class="stake">
+        <div class="scard">
+          <div class="sh"><div class="sav">📊</div><div><div class="snm">Bucky Wallace</div><div class="stt">Chief Revenue Officer</div></div></div>
+          <div class="sgoal">Overriding goal: forecast predictability — hitting next year’s $56M and Pindrop’s path to IPO readiness.</div>
+          <ul>
+            <li><b>Stage-gate enforcement.</b> Required properties &amp; deal-stage automation stop reps advancing without MEDDPIC — no more discovering a “stage 3” deal where the steps were never done.</li>
+            <li><b>Pipeline coverage &amp; predictability.</b> Native forecasting + pipeline snapshots give the leading indicators of how much pipeline to add, when.</li>
+            <li><b>White-space as data, not slides.</b> Expansion &amp; usage triggers become CRM objects reps work — replacing the “$25–40M in spreadsheets/PowerPoint.”</li>
+            <li><b>Lost-opp history that carries over.</b> One persistent customer record — context follows the account to the next rep.</li>
+          </ul>
+        </div>
+        <div class="scard">
+          <div class="sh"><div class="sav">💬</div><div><div class="snm">Kieran King</div><div class="stt">Chief Customer Officer</div></div></div>
+          <div class="sgoal">Overriding goal: a trusted, governed customer source of truth instead of cobbled-together systems teams don’t trust.</div>
+          <ul>
+            <li><b>Unified customer health.</b> Scores, CSAT, last touch &amp; activity in one timeline — ends the Gainsight / Zendesk / Kantata / admin-portal fragmentation and one-way syncs.</li>
+            <li><b>Subscription-data SSOT.</b> Entitlement data lives on-platform, not with one person in Gainsight as a single point of failure.</li>
+            <li><b>Real-time utilization &amp; overage.</b> On-platform alerts replace monthly spreadsheets — closing the GAAP/audit exposure and the missed-expansion trigger.</li>
+            <li><b>Her warehouse ask, answered cheaper.</b> A governed SSOT without the headcount-heavy warehouse TCO — and a warehouse can still layer on at true scale.</li>
+          </ul>
+        </div>
+        <div class="scard champ" style="grid-column:span 2">
+          <div class="sh"><div class="sav">🎨</div><div><div class="snm">Adriana Gil Miner</div><div class="stt">Chief Marketing Officer · GTM leader · champion, ready for a blank slate</div></div></div>
+          <div class="sgoal">Overriding goal: turn a black-box, poorly-integrated stack into one governed, fully-attributable source of truth — and she’s willing to take the blank-slate bet to get there.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px">
+            <ul>
+              <li><b>Attribution from a budget lens.</b> See exactly where pipeline comes from — partners, marketing, sales, BDRs — to defend and reallocate spend.</li>
+              <li><b>Visibility on every axis.</b> Pipeline &amp; revenue by product, vertical, rep, channel and source — plus site-traffic analytics out-of-the-box.</li>
+              <li><b>Pipeline velocity &amp; capacity.</b> Stage-by-stage velocity and whether sales has the capacity to catch the ball — in one funnel.</li>
+              <li><b>Channel intelligence.</b> Channel mix, investment and objectives in a single view to steer the budget.</li>
+            </ul>
+            <ul>
+              <li><b>360° customer lifecycle.</b> One centralized record (with product telemetry piped in) surfaces churn risk and expansion-ready accounts.</li>
+              <li><b>GTM alignment &amp; standardization.</b> One platform and shared definitions replace a barely-used, poorly-integrated stack — including Salesforce-locked Pardot.</li>
+              <li><b>Replace Salesforce.</b> She sees it as the blocker — and wants velocity, ease of use and lower cost. All-in-one HubSpot is the blank slate she’s ready to bet on.</li>
+              <li><b>Kill the tool sprawl.</b> Too many overlapping tools; consolidation ends the black box and the integration tax.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scard">
+          <div class="sh"><div class="sav">🎯</div><div><div class="snm">Sam Harris</div><div class="stt">VP Strategic Finance · Sponsor</div></div></div>
+          <div class="sgoal">Exec-backed engagement sponsor. Sharpest pain: real-time utilization &amp; overage blindness across the business.</div>
+          <ul>
+            <li><b>Real-time utilization visibility.</b> Usage &amp; overage land in one platform — the trigger to expand or extend, surfaced early instead of missed.</li>
+            <li><b>License vs. active usage.</b> Adoption/churn signal becomes visible once telemetry is piped to the hub — esp. for newer PFM/Deepfake lines.</li>
+            <li><b>Rebuild, don’t patch.</b> A clean platform ends 10+ years of Salesforce ingestion debt; native quoting documents what was sold — no heavy CPQ to bolt on.</li>
+            <li><b>Zero-trust data governance.</b> One governed source replaces the ungoverned sprawl he won’t grant access to today.</li>
+          </ul>
+        </div>
+        <div class="scard champ">
+          <div class="sh"><div class="sav">🧭</div><div><div class="snm">Nicholas Holland</div><div class="stt">Chief Product Officer · internal champion (ex-HubSpot)</div></div></div>
+          <div class="sgoal">Already advocating for all-in-one consolidation. Core pains: visibility &amp; cross-team alignment.</div>
+          <ul>
+            <li><b>Visibility &amp; alignment.</b> Exactly what a single hub solves — one lifecycle, one set of definitions across Marketing, Sales &amp; CS.</li>
+            <li><b>No custom moat to defend.</b> His read: nothing Pindrop does is custom enough to warrant Salesforce or complex CPQ — so HubSpot native is sufficient.</li>
+            <li><b>Avoids a forced CPQ.</b> The Salesforce paths add ~$60K/yr in third-party CPQ; the HubSpot path simply doesn’t need it.</li>
+            <li><b>Insider confidence.</b> Having run product at HubSpot, he can vouch for the platform’s fit and de-risk the decision internally.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="throughline">
+        <div class="tlh">The through-line</div>
+        <p>Two themes connect every stakeholder: <b>real-time usage / utilization data</b>, and <b>one trusted, governed hub</b> instead of a fragmented system teams don’t trust. Today both are aspirational <em>inside</em> Salesforce — 10+ years of ingestion debt, no governance council, ~290 shadow dashboards, and a forced third-party CPQ. All-in-one HubSpot delivers the same outcomes on a clean foundation — and the phased rollout proves it before the CRM cutover.</p>
+      </div>
+      <div class="note-honest">Honest scope note: raw product telemetry and partner self-deployment are <b>product gaps</b> that neither a platform swap nor a warehouse closes on its own — the usage data still has to be instrumented and piped in. HubSpot is where that data lands and becomes actionable (forecasting, overage alerts, health); the telemetry pipe is a parallel workstream. CEO Vijay is referenced across discovery but not yet interviewed directly.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 3 · COST COMPARISON ═══════════ -->
+  <div class="toppanel" data-top="cost">
+    <div class="section" id="cost">
+      <div class="section-eyebrow">The Money</div>
+      <h2>Cost comparison across the five paths</h2>
+      <p class="lead">Hard license/run-rate cost. All consolidation options bank the same quick wins: ZoomInfo (both contracts), Common Room &amp; 6sense consolidated into <b>Clay</b> as one intent/enrichment platform. HubSpot, Clay, CPQ &amp; warehouse figures are planning estimates pending quotes. Note two asymmetries: keeping Salesforce (Options 1, 2, 5) forces a ~$60K/yr 3rd-party CPQ that HubSpot CRM avoids — and the warehouse path (Option 5) adds a full data-tooling stack <em>and</em> ~2 FTE without retiring any operational tools.</p>
+      <div class="cmp">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:20%">Annual, hard $</th>
+              <th>Opt 1<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:10.5px;color:var(--text-3)">3 systems + MAP</span></th>
+              <th>Opt 2<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:10.5px;color:var(--text-3)">MAP + Service</span></th>
+              <th style="background:var(--teal-dim);color:#0f766e">Opt 3<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:10.5px;color:#0f766e">HubSpot CRM · Gainsight CX</span></th>
+              <th class="rec">Opt 4 ★<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:10.5px;color:#b45309">HubSpot all-in-one</span></th>
+              <th class="warn">Opt 5<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:10.5px;color:#7c3aed">Data warehouse</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="row-h">Current GTM spend</td><td>$1,379,794</td><td>$1,379,794</td><td>$1,379,794</td><td class="rec">$1,379,794</td><td class="warn">$1,379,794</td></tr>
+            <tr><td class="row-h">Tools / contracts retired</td><td>9</td><td>13</td><td>~20</td><td class="rec">~24</td><td class="warn">1</td></tr>
+            <tr><td class="row-h">Spend eliminated</td><td>$281,699</td><td>$411,952</td><td>$749,706</td><td class="rec">$879,959</td><td class="warn">$15,411</td></tr>
+            <tr><td class="row-h">+ HubSpot license (est.)</td><td>+$54,000</td><td>+$102,000</td><td>+$170,000</td><td class="rec">+$200,000</td><td class="warn">$0</td></tr>
+            <tr><td class="row-h">+ Clay (intent consolidation)</td><td>+$30,000</td><td>+$30,000</td><td>+$30,000</td><td class="rec">+$30,000</td><td class="warn">$0</td></tr>
+            <tr><td class="row-h">+ 3rd-party CPQ (Salesforce only)</td><td>+$60,000</td><td>+$60,000</td><td>$0 — native</td><td class="rec">$0 — native</td><td class="warn">+$60,000</td></tr>
+            <tr><td class="row-h">+ Warehouse stack + ~2 FTE</td><td>$0</td><td>$0</td><td>$0</td><td class="rec">$0</td><td class="warn">+$575,000</td></tr>
+            <tr class="total"><td>New annual run-rate</td><td>$1,242,095</td><td>$1,159,842</td><td>$830,088</td><td class="rec">$729,835</td><td class="warn">$1,999,383</td></tr>
+            <tr class="total"><td>Net annual impact</td><td><span class="tag-pos">+$137,699</span></td><td><span class="tag-pos">+$219,952</span></td><td><span class="tag-pos">+$549,706</span></td><td class="rec"><span class="tag-pos" style="color:#15803d">+$649,959</span></td><td class="warn"><span class="tag-neg">−$619,589</span></td></tr>
+            <tr class="total"><td>% of GTM spend saved</td><td>+10.0%</td><td>+15.9%</td><td>+39.8%</td><td class="rec">+47.1%</td><td class="warn">−44.9%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cost-band" style="margin-top:18px;grid-template-columns:repeat(5,1fr)">
+        <div class="cb"><div class="l">Option 1</div><div class="v" style="color:var(--amber);font-size:21px">Hygiene + a MAP</div><div class="n">Savings come mostly from not switching on 6sense + cutting dup ZoomInfo. Still 3 systems, no SSOT, and a new CPQ.</div></div>
+        <div class="cb"><div class="l">Option 2</div><div class="v" style="color:var(--blue);font-size:21px">Fixes CS, not Sales</div><div class="n">Consolidates the customer source of truth (Kieran’s #1 pain). But Salesforce debt + CPQ remain; Bucky’s CRM pains unaddressed.</div></div>
+        <div class="cb"><div class="l">Option 3</div><div class="v" style="color:var(--teal);font-size:21px">Kills the SF cost</div><div class="n">Retires Salesforce + avoids CPQ, unifies lead→close, keeps Gainsight for CX. ~40% saved — strong runner-up.</div></div>
+        <div class="cb"><div class="l">Option 4 ★</div><div class="v grn" style="font-size:21px">The real prize</div><div class="n">~23 contracts retired, no CPQ, one governed hub, ~47% lower spend — resolves every C-level pain at once.</div></div>
+        <div class="cb"><div class="l">Option 5</div><div class="v" style="color:var(--purple);font-size:21px">Wrong scale</div><div class="n">A governed warehouse/lakehouse — but adds ~$620K/yr (mostly headcount) without fixing fragmentation. Built for 5x, not 300 people.</div></div>
+      </div>
+
+      <div class="whfit">
+        <div class="c fit">
+          <div class="h">🗄️ When the data-warehouse path <em>is</em> right</div>
+          <ul>
+            <li>The org is scaling ~5x and data volume/complexity outgrows any single app</li>
+            <li>Data products, ML, or embedded analytics are core to the roadmap</li>
+            <li>M&amp;A roll-ups force multiple CRMs that must stay by design</li>
+            <li>A dedicated data/analytics-engineering team already exists to run it</li>
+            <li>It directly answers Kieran’s ask for one governed warehouse</li>
+          </ul>
+        </div>
+        <div class="c no">
+          <div class="h">⚠ Why it’s likely premature for Pindrop now</div>
+          <ul>
+            <li>~300 people — the run-rate is dominated by ~2 FTE you must hire &amp; retain</li>
+            <li>It doesn’t fix operational fragmentation: reps &amp; CSMs still live in 3 systems</li>
+            <li>It reports <em>across</em> the bloat rather than removing it — the ~48 tools stay</li>
+            <li>Consolidation (Option 4) delivers the same governed SSOT for ~$1.27M/yr less</li>
+            <li>It can still be layered on later, once scale actually warrants it</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 4 · RECOMMENDATION & ROADMAP ═══════════ -->
+  <div class="toppanel" data-top="rec">
+    <div class="section" id="tco">
+      <div class="section-eyebrow">Total Cost of Ownership</div>
+      <h2>The bigger cost is everything around the license</h2>
+      <p class="lead">License is the visible tip. The real drain of a 48-tool stack is the integration tax, the specialist headcount, the onboarding drag, and the data reconciliation that a single platform makes disappear — and that a warehouse would only add to.</p>
+      <div class="tco">
+        <div class="tcoc"><div class="ti">🔗</div><h4>Integration tax</h4><p>Every point tool syncs to Salesforce through brittle middleware — LeanData, Coefficient, Zapier, Outreach, Gong connectors. Consolidation removes ~8–10 of these failure points; a warehouse adds more pipes, not fewer.</p><div class="mag">~8–10 integrations retired</div></div>
+        <div class="tcoc"><div class="ti">👥</div><h4>Admin &amp; specialist overhead</h4><p>Salesforce admins + a Gainsight admin + per-tool owners. One platform means one admin discipline; the warehouse path instead requires net-new data-engineering headcount.</p><div class="mag">Consolidate vs. add ~2 FTE</div></div>
+        <div class="tcoc"><div class="ti">🎓</div><h4>Onboarding &amp; ramp</h4><p>New reps and CSMs learn one system, not six. Faster time-to-productivity and fewer “which tool do I use?” handoff gaps across Marketing → Sales → CS.</p><div class="mag">One UI for the full GTM team</div></div>
+        <div class="tcoc"><div class="ti">📄</div><h4>Vendor &amp; contract management</h4><p>~23 fewer renewals, security reviews, DPAs, and price true-ups every year. Procurement and IT reclaim real cycles.</p><div class="mag">~23 fewer contracts to manage</div></div>
+        <div class="tcoc"><div class="ti">🧮</div><h4>Data reconciliation</h4><p>Today, reporting is stitched across Tableau, a planned BI tool, Coefficient spreadsheets and Gainsight. Native HubSpot reporting on unified data ends the manual reconciliation.</p><div class="mag">Retire 2–3 reporting layers</div></div>
+        <div class="tcoc"><div class="ti">🛡️</div><h4>Shadow SaaS &amp; governance</h4><p>A dozen “CC-only” tools on credit cards and ~290 employees building their own dashboards — a governance and security blind spot. Consolidation pulls spend &amp; data back under control.</p><div class="mag">~12 shadow card subscriptions</div></div>
+      </div>
+    </div>
+
+    <div class="section" id="rec">
+      <div class="section-eyebrow">Recommendation</div>
+      <h2>Consolidate the full GTM stack onto HubSpot</h2>
+      <div class="rec-box">
+        <div>
+          <div class="re">Recommendation</div>
+          <h3>Option 4 — HubSpot all-in-one.</h3>
+          <p>Options 1 and 2 are real but partial; Option 5 (warehouse) is the right architecture at the wrong scale — it adds ~$620K/yr to report <em>across</em> the bloat instead of removing it. <b>Option 3 (HubSpot front office, Gainsight retained) is the strong runner-up</b> — it captures the biggest cost win and a front-office SSOT in well under a year; choose it if Gainsight’s CS depth is non-negotiable. The all-in-one path goes one step further to a single record across the full lifecycle, resolves every C-level pain at once, returns the largest savings, and — critically — <b>delivers value within ~12 months vs. 2+ years for the warehouse or a Salesforce rebuild.</b></p>
+        </div>
+        <div class="rec-num">
+          <div class="big">~$650K</div>
+          <div class="lbl">est. annual savings (~47%)<br>+ ~24 contracts retired<br>+ one governed source of truth</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="speed">
+      <div class="section-eyebrow">Speed to Value</div>
+      <h2>Consolidation wins in a year — the alternatives take two-plus</h2>
+      <p class="lead">Same destination — one governed source of truth. The difference is <em>how fast</em> you get there, and whether value lands along the way.</p>
+
+      <div class="spd-tiles">
+        <div class="spd-tile win"><div class="tag">Consolidate</div><div class="big">~12 mo</div><div class="lab">HubSpot consolidation</div><div class="sub">Configuration, not construction — value banks <b>every quarter</b>, starting month 1.</div></div>
+        <div class="spd-tile slow"><div class="tag">Build / rebuild</div><div class="big">24+ mo</div><div class="lab">Warehouse build · or Salesforce re-architecture</div><div class="sub">Dependency-heavy &amp; headcount-dependent — the first trusted SSOT lands only <b>at the end</b>.</div></div>
+      </div>
+
+      <div class="spd-tl">
+        <div class="spd-canvas">
+          <div class="spd-axis"><span>Today</span><span>6 mo</span><span>12 mo</span><span>18 mo</span><span>24 mo+</span></div>
+          <div class="spd-year"><span>1 YEAR</span></div>
+          <div class="spd-lanename"><span class="pin" style="background:var(--green)"></span>HubSpot consolidation · Options 3–4</div>
+          <div class="spd-lane"><div class="spd-fill win" style="width:50%">✓ Full SSOT live</div></div>
+          <div class="spd-sub">Quick wins → MAP → Sales Engagement → CRM → CX · each step banks savings &amp; capability</div>
+          <div class="spd-lanename"><span class="pin" style="background:#4b4566"></span>Warehouse build / Salesforce rebuild · Option 5 or status quo</div>
+          <div class="spd-lane"><div class="spd-fill slow" style="width:100%">first trusted SSOT&nbsp;&nbsp;▸</div></div>
+        </div>
+      </div>
+
+      <div class="spd-take"><b>Half the time — and it pays you back the whole way.</b> Consolidation reaches one source of truth in ~12 months while banking savings each quarter; the warehouse/rebuild paths take 2+ years and deliver value only at the finish. <span style="color:var(--text-2)">Gating risk: the Phase-3 CRM migration is the one slip point — but MAP, sales-engagement value &amp; tooling savings are already realized in under six months.</span></div>
+    </div>
+
+    <div class="section" id="roadmap">
+      <div class="section-eyebrow">How we get there</div>
+      <h2>A phased rollup that de-risks the platform before the CRM cutover</h2>
+      <p class="lead">Consolidation is sequenced, not big-bang. Each phase banks tooling savings and lets teams live in HubSpot before the next commitment — so the irreversible CRM migration only happens after the platform has earned trust.</p>
+      <div class="derisk">
+        <div class="dh">⚡ Phase 0 — immediate quick wins (zero platform risk)</div>
+        <p>Before any migration: <b>consolidate ZoomInfo (both contracts), Common Room &amp; 6sense into Clay</b> as one intent/enrichment platform, and cut <b>duplicate sales-engagement (SalesLoft) and contact-center tools</b>. <b>~$245K of spend addressed up front</b> (net of Clay) — largely independent of the platform decision, and it helps fund the rollout.</p>
+      </div>
+
+      <!-- Gantt -->
+      <div class="gantt" id="gantt">
+        <div class="gate"><span class="gtag">⛳ Go / No-Go gate</span></div>
+        <div class="gantt-qtr">
+          <div class="gcorner">Phase / Workstream</div>
+          <div class="gq">Q3 ’26</div><div class="gq">Q4 ’26</div><div class="gq">Q1 ’27</div><div class="gq">Q2 ’27</div>
+        </div>
+        <div class="gantt-mon">
+          <div class="gcorner" style="padding-top:4px;padding-bottom:4px"></div>
+          <div class="gm">Jul</div><div class="gm">Aug</div><div class="gm">Sep</div><div class="gm">Oct</div><div class="gm">Nov</div><div class="gm">Dec</div><div class="gm">Jan</div><div class="gm">Feb</div><div class="gm">Mar</div><div class="gm">Apr</div><div class="gm">May</div><div class="gm">Jun</div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="glabel"><div class="pp">Phase 0 · Quick wins</div><h4>Stop the bleeding</h4><div class="gh">Dup ZoomInfo, one intent platform, dup tools</div></div>
+          <div class="gtrack"><div class="gbar" style="grid-column:1 / 3;background:var(--amber)"><span class="bl">Quick wins</span><span class="bs">banks ~$255K</span></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="glabel"><div class="pp">Phase 1 · Lowest risk</div><h4>Marketing Automation</h4><div class="gh">Stand up Marketing Hub — close the MAP gap</div></div>
+          <div class="gtrack"><div class="gbar" style="grid-column:1 / 4;background:var(--hs)"><span class="bl">MAP live</span><span class="bs">proves platform · no CRM dependency</span></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="glabel"><div class="pp">Phase 2 · Daily usage</div><h4>Sales Engagement</h4><div class="gh">Outreach / SalesLoft / Superhuman → Sales Hub</div></div>
+          <div class="gtrack"><div class="gbar" style="grid-column:3 / 6;background:var(--blue)"><span class="bl">Reps in-platform</span><span class="bs">the real platform test</span></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="glabel"><div class="pp">Phase 3 · Decision point</div><h4>Full Sales CRM</h4><div class="gh">Salesforce → Smart CRM · stage-gates, forecasting</div></div>
+          <div class="gtrack"><div class="gbar" style="grid-column:5 / 10;background:#5b21b6;border:2px solid var(--hs)"><span class="bl">⛳ CRM migration</span><span class="bs">only after 2 phases of validation</span></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="glabel"><div class="pp">Phase 4 · Most sensitive</div><h4>CX → Service Hub</h4><div class="gh">Gainsight, Zendesk, health → Service Hub (Kieran)</div></div>
+          <div class="gtrack"><div class="gbar" style="grid-column:9 / 13;background:var(--teal)"><span class="bl">Full SSOT live</span><span class="bs">~$650K/yr realized</span></div></div>
+        </div>
+      </div>
+      <div class="gnote">
+        <span><span class="gk" style="background:var(--amber)"></span>Quick wins</span>
+        <span><span class="gk" style="background:var(--hs)"></span>Marketing</span>
+        <span><span class="gk" style="background:var(--blue)"></span>Sales</span>
+        <span><span class="gk" style="background:#5b21b6"></span>CRM migration (irreversible)</span>
+        <span><span class="gk" style="background:var(--teal)"></span>Customer experience</span>
+      </div>
+      <div class="note-honest" style="border-color:var(--hs-soft);background:var(--hs-dim);color:#9a3412">Why this order: by the time the irreversible CRM cutover (Phase 3) arrives, Marketing and Sales have already lived in HubSpot for two phases — <b>if the platform isn’t right, leadership knows before the migration, not after</b> (the Go / No-Go gate) — while tooling savings bank from Phase 0 onward. Timeline is illustrative; durations firm up at scoping.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>Notes &amp; assumptions.</b> Current spend reflects Pindrop’s “GTM Tech Subs as of 6.3.2026” schedule (Apr’26 actuals annualized; total $1,379,794). HubSpot license figures are directional estimates pending a configured quote — Option 1 ≈ Marketing Hub Enterprise; Option 2 ≈ + Service Hub Enterprise; Option 3 ≈ CRM + Sales + Marketing + Content/Ops Enterprise (no Service Hub; Gainsight retained for CX); Option 4 ≈ full Customer Platform Enterprise. All consolidation options assume the agreed quick wins: ZoomInfo (both contracts), Common Room and 6sense consolidated into Clay (est. ~$30K/yr) as one intent/enrichment platform. Wistia is retained in every option. Options 1, 2 &amp; 5 retain Salesforce and therefore add an estimated ~$60K/yr third-party CPQ; Options 3 &amp; 4 use HubSpot native quoting. Option 5 (data warehouse) keeps the operational stack intact and adds an estimated ~$575K/yr (cloud warehouse + ETL/reverse-ETL + BI/governance tooling + ~2 FTE data team), plus a one-time build of ~$200–300K; at true scale this trends toward a lakehouse (data lake + warehouse) for raw product/call telemetry, adding further cost. Speed-to-value ranges are directional planning estimates based on platform implementation profiles, not a committed schedule. *Pardot is Pindrop’s current MAP (Salesforce-locked); it is retired under every consolidation option (replaced by HubSpot Marketing Hub). Its ~$45K/yr license is not in the GTM subscriptions schedule, so its retirement is additional savings not reflected in the figures above. “Spend eliminated” counts only tools HubSpot directly absorbs or outright duplicates; tools marked <b>vet</b> are conservatively retained, so realized savings may be higher. Stakeholder pains are drawn from discovery calls with Bucky Wallace (CRO, 6/1), Kieran King (CCO, 6/3) and sponsor Sam Harris (VP Strategic Finance); the CPO’s input is summarized from the engagement team. Roadmap timeline is illustrative for sequencing, not a committed schedule. Figures are planning estimates for decision-making, not a quote.<br><br>
+    Prepared by Lean Layer for Pindrop.
+  </div>
+
+</div>
+
+<script>
+/* ───────── DATA ───────── */
+// disp keys: s1=MAP only · s2=MAP+Service · s3=HubSpot CRM+Gainsight CX · s4=all-in-one · s5=warehouse
+const TOOLS = [
+  {n:"Salesforce CRM", $:320052, cl:"crm", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Pardot (MAP)", $:0, costLabel:"~$45K est.*", cl:"mkt", s1:"replace", s2:"replace", s3:"replace", s4:"replace", s5:"keep", to:"→ HubSpot"},
+  {n:"BrightEdge (SEO)", $:48000, cl:"mkt", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"Primer", $:12000, cl:"mkt", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"RiversideFM", $:15396, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Wistia", $:9066, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Grammarly", $:7362, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Outgrow", $:7187, cl:"mkt", s1:"replace", s2:"replace", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"ProFound", $:6605, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Relume", $:2496, cl:"mkt", s1:"vet", s2:"vet", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"CookieYes", $:3000, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Canva", $:315, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"AI tools (Anthropic, ElevenLabs…)", $:2195, cl:"mkt", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"DocuSign (mktg)", $:148, cl:"mkt", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Clay (intent/enrichment)", $:30000, cl:"data", future:true, s1:"add", s2:"add", s3:"add", s4:"add", s5:"absent"},
+  {n:"Common Room", $:36000, cl:"data", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Clay"},
+  {n:"6sense (ABM)", $:108000, cl:"data", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Clay"},
+  {n:"LinkedIn Sales Nav", $:99612, cl:"data", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"ZoomInfo (Google Pay)", $:99304, cl:"data", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Clay"},
+  {n:"ZoomInfo (dup contract)", $:15411, cl:"data", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"nix", to:"✕ retire"},
+  {n:"Highspot (enablement)", $:50073, cl:"sales", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"Outreach", $:47196, cl:"sales", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"LeanData (routing)", $:43221, cl:"sales", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Unifyr (PRM)", $:35000, cl:"sales", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Hundred Handshakes", $:25181, cl:"sales", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"Loopio (RFP)", $:24531, cl:"sales", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"Gong (conv. intel)", $:92184, cl:"sales", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Superhuman", $:7473, cl:"sales", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"SalesLoft (dup of Outreach)", $:7131, cl:"sales", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Outreach"},
+  {n:"Tackle.io", $:5000, cl:"sales", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"DocuSign (sales)", $:1600, cl:"sales", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"3rd-party CPQ", $:60000, cl:"sales", future:true, s1:"add", s2:"add", s3:"native", s4:"native", s5:"add"},
+  {n:"Gainsight (CS/health)", $:85534, cl:"cs", s1:"keep", s2:"replace", s3:"keep", s4:"replace", s5:"keep"},
+  {n:"Kantata (PSA)", $:37704, cl:"cs", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"Zendesk (support)", $:37600, cl:"cs", s1:"keep", s2:"replace", s3:"keep", s4:"replace", s5:"keep"},
+  {n:"SurveyMonkey (NPS)", $:6489, cl:"cs", s1:"keep", s2:"replace", s3:"keep", s4:"replace", s5:"keep"},
+  {n:"Datadog", $:5078, cl:"cs", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+  {n:"ServiceRocket", $:3050, cl:"cs", s1:"keep", s2:"vet", s3:"keep", s4:"vet", s5:"keep"},
+  {n:"MadCap (KB)", $:630, cl:"cs", s1:"keep", s2:"replace", s3:"keep", s4:"replace", s5:"keep"},
+  {n:"Five9", $:7554, cl:"cc", s1:"keep", s2:"keep", s3:"keep", s4:"vet", s5:"keep"},
+  {n:"NICE inContact (dup)", $:4991, cl:"cc", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Five9"},
+  {n:"Genesys (dup)", $:3675, cl:"cc", s1:"nix", s2:"nix", s3:"nix", s4:"nix", s5:"keep", to:"→ Five9"},
+  {n:"Tableau", $:17333, cl:"ops", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Coefficient", $:15019, cl:"ops", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"BI tool (planned)", $:12000, cl:"ops", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Asana (PM)", $:10482, cl:"ops", s1:"keep", s2:"keep", s3:"vet", s4:"vet", s5:"keep"},
+  {n:"Zapier", $:1469, cl:"ops", s1:"keep", s2:"keep", s3:"replace", s4:"replace", s5:"keep"},
+  {n:"Office Timeline", $:447, cl:"ops", s1:"keep", s2:"keep", s3:"keep", s4:"keep", s5:"keep"},
+];
+
+const CLUSTERS = {
+  crm:  {label:"CRM & System of Record", ic:"🗂️"},
+  sales:{label:"Sales Engagement & Enablement", ic:"📈"},
+  cc:   {label:"Contact Center & Voice", ic:"☎️"},
+  ops:  {label:"Ops, Integration & BI", ic:"⚙️"},
+  mkt:  {label:"Marketing & MAP", ic:"📣"},
+  data: {label:"Data, Intent & ABM", ic:"🛰️"},
+  cs:   {label:"Customer Success & Support", ic:"💬"},
+};
+const ORDER_L = ["crm","sales","cc","ops"];
+const ORDER_R = ["mkt","data","cs"];
+const SYS_MAP = {crm:'sf', sales:'sf', cc:'sf', ops:'sf', data:'sf', mkt:'hs', cs:'gs'};
+const DUO_MAP = {crm:'hs', sales:'hs', ops:'hs', mkt:'hs', data:'hs', cs:'gs', cc:'gs'};
+
+const SCEN = {
+  cur: {
+    title:"Current State — fragmented, no system of record",
+    desc:"~48 tools across three departments with no unifying platform. Value lives in Salesforce (CRM), Gainsight (CS) and Pardot — a Salesforce-locked, poorly-integrated and barely-used MAP. Note the redundancy: two ZoomInfo contracts, two intent platforms (6sense + Common Room), and two sales-engagement tools (Outreach + SalesLoft).",
+    pill:{txt:"$1.38M / yr · ~48 tools",bg:"var(--red-soft)",c:"#991b1b"},
+    hub:"frag", key:null
+  },
+  s1: {
+    title:"Option 1 — HubSpot as MAP · three systems remain",
+    desc:"HubSpot replaces Pardot as the MAP, but Salesforce stays the CRM and Gainsight stays the CS platform — so three systems of record coexist. Quick-win consolidation banks savings, but there is still no single source of truth, and staying on Salesforce forces a new ~$60K/yr CPQ.",
+    pill:{txt:"Net +$138K · still 3 systems",bg:"var(--amber-soft)",c:"#92400e"},
+    hub:"tri", key:"s1"
+  },
+  s2: {
+    title:"Option 2 — HubSpot as MAP + Service Hub (CS platform)",
+    desc:"HubSpot adds Service Hub, consolidating customer success, support ticketing and surveys — retiring Gainsight & Zendesk and fixing Kieran's fragmented health visibility. Salesforce remains the CRM, so the sales-tool layer stays and a ~$60K/yr CPQ is still required.",
+    pill:{txt:"Net +$220K / yr saved (~16%)",bg:"var(--blue-soft)",c:"#1e40af"},
+    hub:"hs", key:"s2", mods:[["Marketing Hub (MAP)",1],["Service Hub (CS)",1],["Sales Hub",0],["Smart CRM",0]]
+  },
+  s3: {
+    title:"Option 3 — HubSpot for the full front office · Gainsight stays CX",
+    desc:"HubSpot replaces Salesforce as the CRM and runs Marketing, Sales, Content & Ops — one front-office source of truth from lead to closed-won, with no Salesforce debt and no separate CPQ. Gainsight remains the dedicated CX/CS platform post-sale. The record is unified across the front office, then hands off to Gainsight. A strong runner-up if Gainsight's CS depth is non-negotiable.",
+    pill:{txt:"Net +$550K / yr saved (~40%)",bg:"var(--teal-soft)",c:"#0f766e"},
+    hub:"duo", key:"s3"
+  },
+  s4: {
+    title:"Option 4 — HubSpot all-in-one ★ Recommended",
+    desc:"HubSpot becomes the full GTM platform: Smart CRM, Sales, Marketing, Service, Content & Ops. ~24 contracts retire — Salesforce, Gainsight, Zendesk, Outreach, LeanData; ZoomInfo + Common Room + 6sense consolidate into Clay. No separate CPQ needed (native quoting). Best-of-breed signals (Gong, Clay, LinkedIn) stay and integrate. One record across the full customer lifecycle.",
+    pill:{txt:"Net +$650K / yr saved (~47%)",bg:"var(--hs-soft)",c:"#9a3412"},
+    hub:"hs", key:"s4", mods:[["Smart CRM",1],["Marketing Hub",1],["Sales Hub",1],["Service Hub",1],["Content + Ops Hub",1]]
+  },
+  s5: {
+    title:"Option 5 — Data Warehouse above the stack",
+    desc:"A cloud data warehouse becomes the analytical center; HubSpot, Salesforce & Gainsight sit one layer down and pipe in, with every CS and GTM tool feeding the warehouse. It delivers a governed reporting layer — but keeps all ~48 operational tools and adds a heavy data-tooling stack plus ~2 FTE. (At true scale, raw product/call telemetry pushes this toward a lakehouse — a data lake plus the warehouse — adding further cost.) The right architecture at 5x scale; over-built for 300 people.",
+    pill:{txt:"Net −$620K / yr · heavy TCO",bg:"var(--purple-soft)",c:"#5b21b6"},
+    hub:"warehouse", key:"s5"
+  },
+};
+
+const DISP_COLOR = {keep:"var(--green)", replace:"var(--red)", nix:"var(--red)", vet:"var(--amber)", add:"var(--blue)", native:"var(--hs)"};
+const money = v => v>=1000 ? "$"+Math.round(v/1000)+"K" : "$"+v;
+
+/* ───────── RENDER ───────── */
+function clusterCard(clKey, scenKey){
+  const c = CLUSTERS[clKey];
+  const items = TOOLS.filter(t=>t.cl===clKey && !(t.future && !scenKey) && !(scenKey && t[scenKey]==='absent'));
+  const allGone = scenKey && items.every(t=>{const d=t[scenKey]; return d==="replace"||d==="nix";});
+  let chips = items.map(t=>{
+    const d = scenKey ? t[scenKey] : "keep";
+    const gone = (d==="replace"||d==="nix");
+    let cs = t.costLabel || money(t.$), cls = "";
+    if(gone){cs = t.to || "→ HubSpot"; cls="gone";}
+    else if(d==="add"){cs="+"+money(t.$)+" NEW"; cls="addtool";}
+    else if(d==="native"){cs="✓ native"; cls="native";}
+    return `<div class="chip ${cls}">
+      <span class="cd" style="background:${DISP_COLOR[d]}"></span>
+      <span class="cn">${t.n}</span>
+      <span class="cs">${cs}</span>
+    </div>`;
+  }).join("");
+  const tot = items.reduce((a,t)=>{const d=scenKey?t[scenKey]:"keep"; return a+(d==="native"?0:t.$);},0);
+  return `<div class="cluster ${allGone?'allnix':''}" id="cl-${scenKey||'cur'}-${clKey}">
+    <div class="cluster-h"><span class="nm"><span class="ic">${c.ic}</span>${c.label}</span><span class="ct">${money(tot)}</span></div>
+    <div class="chips">${chips}</div>
+  </div>`;
+}
+
+function hubHTML(scen){
+  if(scen.hub==="frag"){
+    return `<div class="hub frag" id="hub-cur">
+      <div class="hub-logo">⚠ No Single<br>Source of Truth</div>
+      <div class="hub-tag">Value split across 3 disconnected cores</div>
+      <div class="frag-core"><span class="fd" style="background:var(--blue)"></span>Salesforce — CRM &amp; pipeline</div>
+      <div class="frag-core"><span class="fd" style="background:var(--teal)"></span>Gainsight — CS &amp; health</div>
+      <div class="frag-core" style="color:var(--amber)"><span class="fd" style="background:var(--amber)"></span>Pardot — MAP (Salesforce-locked, barely used)</div>
+    </div>`;
+  }
+  if(scen.hub==="tri"){
+    const K=scen.key;
+    return `<div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="hub hsbox" id="hub-${K}-hs" style="box-shadow:0 0 0 4px var(--hs-dim),var(--shadow);padding:14px 16px">
+        <div class="hub-logo" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:13px">H</span>HubSpot</div>
+        <div class="hub-tag">Marketing automation — <b>new</b></div>
+      </div>
+      <div class="hub" id="hub-${K}-sf" style="background:#fff;border:2px solid var(--blue);box-shadow:0 0 0 5px var(--blue-dim),var(--shadow-md);border-radius:16px;padding:17px 16px">
+        <div class="hub-logo" style="color:var(--blue);font-size:18px">Salesforce</div>
+        <div class="hub-tag">CRM — system of record (stays)</div>
+      </div>
+      <div class="hub" id="hub-${K}-gs" style="background:#fff;border:2px solid var(--teal);box-shadow:0 0 0 4px var(--teal-dim),var(--shadow);border-radius:16px;padding:14px 16px">
+        <div class="hub-logo" style="color:var(--teal);font-size:16px">Gainsight</div>
+        <div class="hub-tag">CS platform / CDP (stays)</div>
+      </div>
+      <div class="hubwarn">⚠ Still 3 systems — no single source of truth</div>
+    </div>`;
+  }
+  if(scen.hub==="duo"){
+    const K=scen.key;
+    return `<div style="display:flex;flex-direction:column;gap:13px;">
+      <div class="hub hsbox" id="hub-${K}-hs">
+        <div class="hub-logo"><span class="mark">H</span>HubSpot</div>
+        <div class="hub-tag">Front office — CRM · Marketing · Sales</div>
+        <div class="hub-mods">
+          <div class="mod on"><span class="mdot"></span>Smart CRM <span style="opacity:.7;font-weight:500">(replaces Salesforce)</span></div>
+          <div class="mod on"><span class="mdot"></span>Marketing Hub</div>
+          <div class="mod on"><span class="mdot"></span>Sales Hub</div>
+          <div class="mod on"><span class="mdot"></span>Content + Ops Hub</div>
+        </div>
+      </div>
+      <div class="hub" id="hub-${K}-gs" style="background:#fff;border:2px solid var(--teal);box-shadow:0 0 0 4px var(--teal-dim),var(--shadow);border-radius:16px;padding:15px 16px">
+        <div class="hub-logo" style="color:var(--teal);font-size:17px">Gainsight</div>
+        <div class="hub-tag">CX / CS platform (stays) — post-sale</div>
+      </div>
+      <div class="hubwarn" style="color:var(--text-2)">One front-office record · hands off to Gainsight for CX</div>
+    </div>`;
+  }
+  if(scen.hub==="warehouse"){
+    const K=scen.key;
+    return `<div style="display:flex;flex-direction:column;gap:13px;align-items:stretch;">
+      <div class="hub" id="wh-bi-${K}" style="background:var(--purple-dim);border:1.5px solid var(--purple);border-radius:12px;padding:10px 12px">
+        <div class="hub-logo" style="color:var(--purple);font-size:13px;gap:6px">📊 BI &amp; Governance</div>
+        <div class="hub-tag" style="font-size:10px">Looker · catalog · semantic layer</div>
+      </div>
+      <div class="hub" id="wh-core-${K}" style="background:linear-gradient(160deg,#fff,var(--purple-soft));border:2px solid var(--purple);box-shadow:0 0 0 6px var(--purple-dim),var(--shadow-lg);border-radius:16px;padding:18px 16px">
+        <div class="hub-logo" style="color:#5b21b6;font-size:18px;gap:7px">🗄️ Data Warehouse</div>
+        <div class="hub-tag">Snowflake / BigQuery + ETL — the new center</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div id="sys-hs-${K}" style="flex:1;background:#fff;border:1.5px solid var(--hs);border-radius:10px;padding:10px 4px;text-align:center"><div style="font-weight:700;font-size:11px;color:#9a3412">HubSpot</div><div style="font-size:8.5px;color:var(--text-3);font-family:var(--fm)">MAP</div></div>
+        <div id="sys-sf-${K}" style="flex:1;background:#fff;border:1.5px solid var(--blue);border-radius:10px;padding:10px 4px;text-align:center"><div style="font-weight:700;font-size:11px;color:var(--blue)">Salesforce</div><div style="font-size:8.5px;color:var(--text-3);font-family:var(--fm)">CRM</div></div>
+        <div id="sys-gs-${K}" style="flex:1;background:#fff;border:1.5px solid var(--teal);border-radius:10px;padding:10px 4px;text-align:center"><div style="font-weight:700;font-size:11px;color:var(--teal)">Gainsight</div><div style="font-size:8.5px;color:var(--text-3);font-family:var(--fm)">CS</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-2);text-align:center;line-height:1.45">All tools kept &amp; piped in —<br>bloat remains, plus warehouse TCO</div>
+    </div>`;
+  }
+  const mods = scen.mods.map(m=>`<div class="mod ${m[1]?'on':'off'}"><span class="mdot"></span>${m[0]}</div>`).join("");
+  return `<div class="hub hsbox" id="hub-${scen.key}">
+    <div class="hub-logo"><span class="mark">H</span>HubSpot</div>
+    <div class="hub-tag">Consolidated GTM platform</div>
+    <div class="hub-mods">${mods}</div>
+  </div>`;
+}
+
+function panelHTML(pid){
+  const scen = SCEN[pid];
+  const L = ORDER_L.map(k=>clusterCard(k, scen.key)).join("");
+  const R = ORDER_R.map(k=>clusterCard(k, scen.key)).join("");
+  const extra = pid==="cur" ? painsHTML() : costBandHTML(pid);
+  return `<div class="panel ${pid==='cur'?'active':''}" data-panel="${pid}">
+    <div class="map-frame">
+      <div class="map-banner">
+        <div><div class="t">${scen.title}</div><div class="d">${scen.desc}</div></div>
+        <div class="pill" style="background:${scen.pill.bg};color:${scen.pill.c}">${scen.pill.txt}</div>
+      </div>
+      <div class="stage">
+        <svg class="spokes" id="svg-${pid}"></svg>
+        <div class="stage-grid" id="grid-${pid}">
+          <div class="col">${L}</div>
+          <div class="col" style="align-items:stretch">${hubHTML(scen)}</div>
+          <div class="col">${R}</div>
+        </div>
+      </div>
+    </div>
+    ${extra}
+  </div>`;
+}
+
+function costBandHTML(pid){
+  const data = {
+    s1:[["Spend eliminated","$281,699","red","9 tools — ZoomInfo/CommonRoom/6sense→Clay, dup sales-eng"],
+        ["+ HubSpot + CPQ + Clay","+$144,000","","Marketing Hub + forced CPQ + Clay"],
+        ["New run-rate","$1,242,095","","vs $1,379,794 today"],
+        ["Net saved / yr","+$137,699","grn","~10% — but still 3 systems, no SSOT"]],
+    s2:[["Spend eliminated","$411,952","red","13 tools incl. Gainsight, Zendesk, intent→Clay"],
+        ["+ HubSpot + CPQ + Clay","+$192,000","","Marketing + Service Hub + CPQ + Clay"],
+        ["New run-rate","$1,159,842","","vs $1,379,794 today"],
+        ["Net saved / yr","+$219,952","grn","~16% — CS consolidated, SF debt remains"]],
+    s3:[["Spend eliminated","$749,706","red","~20 tools incl. Salesforce, Outreach, intent→Clay"],
+        ["+ HubSpot + Clay (no CPQ)","+$200,000","","CRM + Marketing + Sales + Ops · Gainsight stays"],
+        ["New run-rate","$830,088","","vs $1,379,794 today"],
+        ["Net saved / yr","+$549,706","grn","~40% — front office unified, Gainsight kept"]],
+    s4:[["Spend eliminated","$879,959","red","~24 tools incl. Salesforce, Gainsight, intent→Clay"],
+        ["+ HubSpot + Clay (no CPQ)","+$230,000","","Full Customer Platform — native quoting"],
+        ["New run-rate","$729,835","","vs $1,379,794 today"],
+        ["Net saved / yr","+$649,959","grn","~47% — recommended"]],
+    s5:[["+ New infra &amp; team","+$575,000","red","Warehouse/lakehouse + ETL + BI + ~2 FTE"],
+        ["Operational tools","kept","","Only dup ZoomInfo cut — full bloat remains"],
+        ["New run-rate","$1,999,383","","+ ~$200–300K one-time build"],
+        ["Net impact / yr","−$619,589","red","~45% MORE — over-built for 300 people"]],
+  }[pid];
+  return `<div class="cost-band">`+data.map(d=>`<div class="cb"><div class="l">${d[0]}</div><div class="v ${d[2]}">${d[1]}</div><div class="n">${d[3]}</div></div>`).join("")+`</div>`;
+}
+
+function painsHTML(){
+  const p = [
+    ["🔀 No source of truth","Customer data lives in Salesforce, Gainsight & spreadsheets at once — no record everyone trusts."],
+    ["🌫️ Black-box visibility","No clean view by product, vertical, rep, channel or source — and no pipeline attribution. Reporting is stitched across Tableau, a planned BI tool & Coefficient exports."],
+    ["↔️ GTM mis-alignment","Marketing, Sales & CS run on separate systems with separate definitions and lossy hand-offs."],
+    ["🧩 No single hub","No platform the whole GTM org works from — every team has its own tool island."],
+    ["📦 Bloat","~48 subscriptions, incl. two ZoomInfo contracts, two intent platforms, and duplicate sales-engagement tools."],
+    ["🛡️ Governance gaps","~12 'CC-only' tools on cards + ~290 employees building their own dashboards — a security & data blind spot."],
+    ["⏳ Insights not at hand","Answering a GTM question means an export, a spreadsheet, or a data-eng ticket — not a dashboard."],
+    ["💸 Spend creep","$1.38M/yr and climbing — multiple tools 'coming on' in May–Jun '26 with overlapping functions."],
+  ];
+  return `<div class="pains">`+p.map(x=>`<div class="pain"><div class="pt">${x[0]}</div><div class="pd">${x[1]}</div></div>`).join("")+`</div>`;
+}
+
+document.getElementById("panels").innerHTML = Object.keys(SCEN).map(panelHTML).join("");
+
+/* ───────── SPOKES ───────── */
+function drawSpokes(pid){
+  const scen = SCEN[pid];
+  const grid = document.getElementById("grid-"+pid);
+  const svg = document.getElementById("svg-"+pid);
+  if(!grid||!svg) return;
+  const stage = grid.parentElement;
+  const gr = stage.getBoundingClientRect();
+  if(gr.width===0) return;
+  svg.setAttribute("viewBox",`0 0 ${gr.width} ${gr.height}`);
+  svg.innerHTML="";
+
+  const pos=(el,side)=>{const r=el.getBoundingClientRect();
+    if(side==='right')  return {x:r.right-gr.left, y:r.top-gr.top+r.height/2};
+    if(side==='left')   return {x:r.left-gr.left,  y:r.top-gr.top+r.height/2};
+    if(side==='top')    return {x:r.left-gr.left+r.width/2, y:r.top-gr.top};
+    if(side==='bottom') return {x:r.left-gr.left+r.width/2, y:r.bottom-gr.top};
+  };
+  const draw=(from,to,color,dashed)=>{
+    const dx=to.x-from.x, dy=to.y-from.y; let d;
+    if(Math.abs(dx)>=Math.abs(dy)){const mx=from.x+dx*0.5; d=`M${from.x},${from.y} C${mx},${from.y} ${mx},${to.y} ${to.x},${to.y}`;}
+    else{const my=from.y+dy*0.5; d=`M${from.x},${from.y} C${from.x},${my} ${to.x},${my} ${to.x},${to.y}`;}
+    const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+    p.setAttribute("d",d);p.setAttribute("stroke",color);p.setAttribute("fill","none");
+    p.setAttribute("stroke-width","1.6");p.setAttribute("stroke-linecap","round");
+    p.style.opacity=dashed?"0.5":"0.82";
+    if(dashed)p.setAttribute("stroke-dasharray","5 5");
+    svg.appendChild(p);
+    if(!dashed){
+      const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      dot.setAttribute("r","2.6");dot.setAttribute("fill",color);dot.style.opacity="0.9";
+      const am=document.createElementNS("http://www.w3.org/2000/svg","animateMotion");
+      am.setAttribute("dur","2.8s");am.setAttribute("repeatCount","indefinite");am.setAttribute("path",d);
+      dot.appendChild(am);svg.appendChild(dot);
+    }
+  };
+  const dominant=(clKey)=>{
+    const items=TOOLS.filter(t=>t.cl===clKey && !(t.future && !scen.key) && !(scen.key && t[scen.key]==='absent'));
+    let elim=0,n=0; items.forEach(t=>{const dd=scen.key?t[scen.key]:"keep"; if(dd==="replace"||dd==="nix"){elim++;} n++;});
+    if(scen.key && elim===n && n>0) return "var(--red)";
+    if(scen.key && elim>0) return "var(--amber)";
+    return "var(--green)";
+  };
+  const clEl=(k)=>document.getElementById(`cl-${scen.key||'cur'}-${k}`);
+
+  if(scen.hub==='frag'||scen.hub==='hs'){
+    const hub=document.getElementById(scen.hub==='frag'?'hub-cur':'hub-'+scen.key);
+    if(!hub) return;
+    ORDER_L.forEach(k=>{const el=clEl(k);if(!el)return;const col=dominant(k);draw(pos(hub,'left'),pos(el,'right'),col,col==='var(--red)');});
+    ORDER_R.forEach(k=>{const el=clEl(k);if(!el)return;const col=dominant(k);draw(pos(hub,'right'),pos(el,'left'),col,col==='var(--red)');});
+  }
+  else if(scen.hub==='tri'){
+    const K=scen.key;
+    const hubs={hs:document.getElementById('hub-'+K+'-hs'),sf:document.getElementById('hub-'+K+'-sf'),gs:document.getElementById('hub-'+K+'-gs')};
+    ORDER_L.forEach(k=>{const el=clEl(k),h=hubs[SYS_MAP[k]];if(!el||!h)return;const col=dominant(k);draw(pos(h,'left'),pos(el,'right'),col,col==='var(--red)');});
+    ORDER_R.forEach(k=>{const el=clEl(k),h=hubs[SYS_MAP[k]];if(!el||!h)return;const col=dominant(k);draw(pos(h,'right'),pos(el,'left'),col,col==='var(--red)');});
+  }
+  else if(scen.hub==='duo'){
+    const K=scen.key;
+    const hubs={hs:document.getElementById('hub-'+K+'-hs'),gs:document.getElementById('hub-'+K+'-gs')};
+    ORDER_L.forEach(k=>{const el=clEl(k),h=hubs[DUO_MAP[k]];if(!el||!h)return;const col=dominant(k);draw(pos(h,'left'),pos(el,'right'),col,col==='var(--red)');});
+    ORDER_R.forEach(k=>{const el=clEl(k),h=hubs[DUO_MAP[k]];if(!el||!h)return;const col=dominant(k);draw(pos(h,'right'),pos(el,'left'),col,col==='var(--red)');});
+  }
+  else if(scen.hub==='warehouse'){
+    const K=scen.key;
+    const sys={hs:document.getElementById('sys-hs-'+K),sf:document.getElementById('sys-sf-'+K),gs:document.getElementById('sys-gs-'+K)};
+    const wh=document.getElementById('wh-core-'+K), bi=document.getElementById('wh-bi-'+K);
+    ORDER_L.forEach(k=>{const el=clEl(k),s=sys[SYS_MAP[k]];if(!el||!s)return;draw(pos(s,'left'),pos(el,'right'),'var(--green)',false);});
+    ORDER_R.forEach(k=>{const el=clEl(k),s=sys[SYS_MAP[k]];if(!el||!s)return;draw(pos(s,'right'),pos(el,'left'),'var(--green)',false);});
+    Object.values(sys).forEach(s=>{if(s&&wh)draw(pos(s,'top'),pos(wh,'bottom'),'var(--blue)',false);});
+    if(wh&&bi)draw(pos(wh,'top'),pos(bi,'bottom'),'var(--purple)',false);
+  }
+}
+function activePid(){const a=document.querySelector(".panel.active");return a?a.dataset.panel:"cur";}
+function redraw(){drawSpokes(activePid());}
+
+/* ───────── MAP SUB-TABS ───────── */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    const pid=t.dataset.p;
+    document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.dataset.panel===pid));
+    setTimeout(()=>drawSpokes(pid),60);
+  });
+});
+
+/* ───────── TOP NAV ───────── */
+document.querySelectorAll(".tnav").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".tnav").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    const t=b.dataset.t;
+    document.querySelectorAll(".toppanel").forEach(p=>p.classList.toggle("active",p.dataset.top===t));
+    document.querySelector(".topnav").scrollIntoView();
+    if(t==='eco') setTimeout(redraw,70);
+  });
+});
+
+window.addEventListener("load",()=>setTimeout(redraw,300));
+window.addEventListener("resize",()=>setTimeout(redraw,80));
+</script>
+</body>
+</html>
